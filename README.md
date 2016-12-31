@@ -37,11 +37,11 @@ I then created a basic GUI with the MVP in mind plus a few added features. The d
 * [GUI design](url) - wireframe (built with [Gliffy Chrome extension](https://chrome.google.com/webstore/detail/gliffy-diagrams/bhmicilclplefnflapjmnngmkkkkpfad?hl=en))
 
 ###Challenges
-In order to reach MVP status I needed to thoroughly understand the inner workings of previous similar homework assignments. The [memory game - w02d05](https://github.com/ga-students/wdi-remote-matey/tree/master/unit_01/w02d05/student_labs/memory_jquery_lab_day_solution) had many similar elements, but I didn’t initially understand why it worked the way it did. I spent quite a bit of time debugging, adding `console.log` messages, editing it, and using the browser webdev tools to really understand the logic.
+The interactivity of Connect Four had many similiarities with the [Memory Game w02d05](https://github.com/ga-students/wdi-remote-matey/tree/master/unit_01/w02d05/student_labs/memory_jquery_lab_day_solution) which we completed earlier. My version didn't work, but I knew I had to understand its inner workings to reach MVP status for Connect Four. I spent quite a bit of time debugging Memory Game, adding `console.log` messages, editing it, and using the browser webdev tools to understand the logic.
 
-I realized it us using class names to designate game state. I had worked with state machines before, so this resonated with me and I could proceed with developing the code on my own.
+I then realized it was using classes as labels that represented the game's state at any point in time. I had worked with state machines before, so this resonated with me and I could proceed with developing the Connect Four code on my own.
 
-From this work I created this [state diagram](url).
+From this analysis, I created this [state diagram](url).
 
 ###Code Structure
 The third step was to draft an outline of the HTML and JavaScript code. The HTML was built to mimic the wireframe with enough structure to write develop the code framework. I added/changed classes multiple times as I thought through the structure. Initially I used `<ul><li>` as the board rows and columns, then simplified it to a set of `<div>` grids that was forced into the required dimensions (6 rows, 7 columns) by CSS. After studying the previous [memory game](https://github.com/ga-students/wdi-remote-matey/tree/master/unit_01/w02d05/student_labs/memory_jquery_lab_day_solution), I felt this layout was simpler to manage and iterate through in code.
@@ -78,52 +78,42 @@ Using the memory game as inspiration, I defined these four states:
 * player2
 * win
 
-Each state is defined as a class assigned to each of the 42 cells at different points in the game. These classes are not used to style the board (not defined in CSS) though they could also be used for that purpose. The states (classes) were added to the respective cell to keep track of (1) cells available for play, (2) cells owned by each player, and (3) cells that make up a winning combination.
+Each state is defined as a class assigned to each of the 42 cells at different points in the game. These classes are not used as style elements (not defined in CSS), though they could also be used for that purpose. The states (classes) were added to the respective cell to keep track of (1) cells available for play, (2) cells owned by each player, and (3) cells that make up a winning combination.
 
-Initially all cells are tagged with styles ‘.column’ and ‘.empty’ with only ‘.column’ an actual CSS defined style.
+When the board is first rendered (at game start), all cells are tagged with classes ‘.space’ and ‘.empty’. Of all the classes assigned to a `<div>` only class ‘.space’ is defined as an actual CSS style. I also added a designator for row and col so I could later figure out the winner. Here are some samples of how a given cell (at column 2, row 5) changes state from game start ('empty') to game end ('win'). 
 
-`<div class=‘column empty’></div>`
+`<div class=‘c2r5 space empty’></div>`
+`<div class=‘c2r5 space player1’></div>`
+`<div class=‘c2r5 space player1 win’></div>`
+`<div class=‘c2r4 space player1 win’></div>`
+`<div class=‘c2r3 space player1 win’></div>`
+`<div class=‘c2r2 space player1 win’></div`
 
-Since each cell was defined with its own event trigger function, the code knows which cells was chosen. When a cell is clicked, the code checks to see it is available for play. It does this by checking the status of the cell; who owns it and is it empty.
+Since each cell was defined with its own event function, the code knows which cell was chosen. When a cell is clicked, the code checks to see it is available for play. It does this by checking the status of the cell; who owns it and is it empty.
 
-`$(cell).hasClass(‘empty’)`
+`if ( $(cell).hasClass(‘empty’) ) { }`
 
 If this statement is true, the cell is available for the current player to add their token. If it is false (cell is not empty) a message is written to the page, and the player selects another cell.
 
 Once the token is added, the ‘empty’ class is replaced with the class of the current player - ‘player1’ or ‘player2’ to designated ownership.
 
-`<div class="c2 column player2"><img src="images/purpledot.png"></div>`
+`<div class="c2 space player2"><img src="images/purpledot.png"></div>`
 (cell c2 is owned by player2 and shows that player’s game token)
-
-Over the course of the game each cell takes on one of the following states:
-
-`<div class=‘column empty’></div>`
-`<div class=‘column player1’></div>`
-`<div class=‘column player2’></div>`
-`<div class=‘column win’></div>`
-
-In addition to these four, I added another class to track the cell number. This was used to more efficiently identify the winning pattern on the board. It does not have a CSS definition.
-
-`<div class=‘c9 column player1’></div>`
-
-In this example, `class=“c9”` identifies this cell as 9 out of 42.
 
 **Choosing a Winner
 
-Using this state machine to manage who owns which cells at any given time, makes it easier to determine when to check for the winner. In Connect Four a winner has to have at least four playing pieces on the board. I used this code to tell if it’s time to check for a winning play.
+Using the state machine to track ownership (status) of each cell, makes it easier to determine when to check for the winner. In Connect Four a winner has to have at least four playing pieces on the board. I used this to tell if it’s time to check for a winning play.
 
-`$(‘.player1’).length`
+`if ( $(‘.player1’).length === 4 ) { }`
 
-This returns the number of times the class ‘player1’ is used on the page. Since the code only adds this class after a token has been played, it tells me how many cells are owned (occupied) by each player. Once either play has placed four tokens on the board, I can run manageData.checkForWinner() method to see if the current player has won the game.
+This statement returns the number of times the class ‘player1’ is used on the page. Since the code only adds this class after a token has been played, it represents how many cells are owned by each player. Once either player has placed four tokens on the board, I run `manageData.checkForWinner()` method to see if the current player has won the game.
 
 If the current player wins, the game is stopped (events are disabled), and a winning message is displayed.
-
-????I can also use this in combination with `class=“cX”` where X is the cell number (mentioned above).
 
 ***Improvements
 Getting to the MVP stage was a larger task than I first thought so I didn’t have time to add more functionality. Additional improvements would be:
 
-- [ ] Force the token to occupy the bottom-most available cell (instead of selected cell)
+- [ ] Force the token to occupy the bottom-most available cell in the column (instead of any selected cell)
 - [ ] Restarting the game without reloading the page
 - [ ] Allowing players to choose their token
 - [ ] Finishing the form to show real player names instead of player1 v. player2
@@ -132,5 +122,4 @@ Getting to the MVP stage was a larger task than I first thought so I didn’t ha
 - [ ] Allow player to play against the computer
 - [ ] Keeping score
 - [ ] Saving a game to return to later
-- [ ] Leaderboard of past high scores (player name, date, score)
-
+- [ ] Leaderboard showing past high scores (player name, date, and score)
